@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>汉字加密解密_ZYH</title>
+
+    <!-- Your CSS Code -->
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"
+      integrity="sha256-/H4YS+7aYb9kJ5OKhFYPUjSJdrtV6AeyJOtTkw6X72o="
+      crossorigin="anonymous"
+    ></script>
+    <script type="text/javascript">
+      function a(pChoice) {
+        var inputEle = document.getElementById("input_area");
+        var outputEle = document.getElementById("output_area");
+        switch (pChoice) {
+          case "CONVERT":
+            outputEle.value = unicode(inputEle.value);
+            break;
+          case "RECONVERT":
+            outputEle.value = reconvert(inputEle.value);
+            break;
+        }
+      }
+
+      function unicode(str) {
+        var value = "";
+        for (var i = 0; i < str.length; i++) {
+          value +=
+            "\\u" + left_zero_4(parseInt(str.charCodeAt(i)).toString(16));
+        }
+        // return value;
+        return CryptoJS.AES.encrypt(value, "Secret Passphrase").toString();
+      }
+
+      function left_zero_4(str) {
+        //汉字的话直接不处理，英文的话开头补“00”
+        if (str != null && str != "" && str != "undefined") {
+          if (str.length == 2) {
+            return "00" + str;
+          }
+        }
+        return str;
+      }
+
+      function reconvert(str) {
+        str = CryptoJS.AES.decrypt(str, "Secret Passphrase").toString(
+          CryptoJS.enc.Utf8
+        );
+
+        str = str.replace(/(\\u)(\w{1,4})/gi, function ($0) {
+          return String.fromCharCode(
+            parseInt(escape($0).replace(/(%5Cu)(\w{1,4})/g, "$2"), 16)
+          );
+        });
+        str = str.replace(/(& #x)(\w{1,4});/gi, function ($0) {
+          return String.fromCharCode(
+            parseInt(escape($0).replace(/(%26%23x)(\w{1,4})(%3B)/g, "$2"), 16)
+          );
+        });
+        str = str.replace(/(& #)(\d{1,6});/gi, function ($0) {
+          return String.fromCharCode(
+            parseInt(escape($0).replace(/(%26%23)(\d{1,6})(%3B)/g, "$2"))
+          );
+        });
+        return str;
+      }
+
+      function myCopy() {
+        var copyText = document.getElementById("output_area");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); // For mobile devices
+        // Copy the text inside the text field
+        navigator.clipboard.writeText(copyText.value);
+        alert("Copied the text: " + copyText.value);
+      }
+    </script>
+
+    <style>
+      textarea {
+        width: 90%;
+        height: 200px;
+        resize: vertical;
+        border: 1px solid #ccc;
+        /*border-radius:8px;*/
+        padding: 4px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        box-shadow: 2px 2px 5px #d3d6da;
+        -moz-box-shadow: 2px 2px 5px #d3d6da;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Your Code Here -->
+    <header></header>
+
+    <textarea
+      id="input_area"
+      name="input_area"
+      placeholder="输入需要加密的汉字，或者粘贴需要解密的乱码"
+      value=""
+    ></textarea>
+    <div class="row">
+      <button onclick="javascript:a('CONVERT');">加密</button>
+      <button onclick="javascript:a('RECONVERT');">解密</button>
+      <button onclick="javascript:myCopy()">一键复制</button>
+    </div>
+    <textarea
+      name="output_area"
+      id="output_area"
+      onclick="this.select();"
+      placeholder="输出区域"
+      value=""
+    ></textarea>
+  </body>
+</html>
